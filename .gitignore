@@ -1,0 +1,21 @@
+# Secrets / environment — never commit
+.env
+.env.*
+*.key
+*.pem
+credentials*
+secrets*
+
+# Local diagnostic outputs (monitors, captures)
+flap*.log
+*-syslog.log
+*.etl
+*.pcap
+tmp/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

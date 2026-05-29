@@ -1,0 +1,64 @@
+---
+# Structural validation of the plugin + skill on every PR/push. Dependency-light
+# (jq + bash only) so it always runs; mirrors what `claude plugin validate
+# --strict` and `skills-ref validate` check (manifest validity, skill/agent
+# frontmatter, skill name == directory name). Run those two tools locally for
+# the authoritative check.
+name: validate
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  structure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate plugin manifest
+        run: |
+          set -Eeuo pipefail
+          jq -e '.name and .version and .description' \
+            .claude-plugin/plugin.json >/dev/null
+          echo "OK: plugin.json has name, version, description"
+
+      - name: Validate skill frontmatter (name + description; name == dir)
+        run: |
+          set -Eeuo pipefail
+          fail=0
+          while IFS= read -r skill; do
+            dir="$(basename "$(dirname "${skill}")")"
+            fm="$(awk 'NR==1&&/^---/{f=1;next} /^---/{exit} f' "${skill}")"
+            name="$(printf '%s\n' "${fm}" | sed -nE 's/^name:[[:space:]]*"?([^"]+)"?.*/\1/p')"
+            desc="$(printf '%s\n' "${fm}" | sed -nE 's/^description:.*/x/p')"
+            if [ -z "${name}" ];  then echo "FAIL ${skill}: missing name"; fail=1; fi
+            if [ -z "${desc}" ];  then echo "FAIL ${skill}: missing description"; fail=1; fi
+            if [ -n "${name}" ] && [ "${name}" != "${dir}" ]; then
+              echo "FAIL ${skill}: name '${name}' != dir '${dir}'"; fail=1
+            fi
+          done < <(find skills -name SKILL.md)
+          [ "${fail}" -eq 0 ] && echo "OK: skills valid"
+          exit "${fail}"
+
+      - name: Validate agent frontmatter (name + description)
+        run: |
+          set -Eeuo pipefail
+          fail=0
+          for a in agents/*.md; do
+            [ -e "${a}" ] || continue
+            fm="$(awk 'NR==1&&/^---/{f=1;next} /^---/{exit} f' "${a}")"
+            printf '%s\n' "${fm}" | grep -qE '^name:[[:space:]]'        || { echo "FAIL ${a}: missing name"; fail=1; }
+            printf '%s\n' "${fm}" | grep -qE '^description:[[:space:]]' || { echo "FAIL ${a}: missing description"; fail=1; }
+          done
+          [ "${fail}" -eq 0 ] && echo "OK: agents valid"
+          exit "${fail}"
+...

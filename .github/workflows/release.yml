@@ -1,0 +1,27 @@
+---
+# Automated release + changelog via release-please. Conventional Commits on
+# `main` drive a maintained release PR that bumps the version (in
+# .release-please-manifest.json and, via extra-files, .claude-plugin/plugin.json)
+# and regenerates CHANGELOG.md. Merging that PR tags the release and publishes
+# a GitHub Release. Config: release-please-config.json + .release-please-manifest.json.
+name: release-please
+
+"on":
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Run release-please
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ github.token }}
+...

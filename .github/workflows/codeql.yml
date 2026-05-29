@@ -1,0 +1,41 @@
+---
+# CodeQL code scanning. This repo is markdown + JSON + GitHub Actions, so the
+# meaningful target is the `actions` language (scans workflows for injection,
+# excessive permissions, untrusted-input, and unpinned-action issues). Add more
+# languages here if executable source (python/javascript) is ever committed.
+name: codeql
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions: {}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+...
