@@ -4,6 +4,13 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project
 adheres to [Semantic Versioning](https://semver.org).
 
+## [0.3.0](https://github.com/pkloehn1/unifi-netops/compare/v0.2.0...v0.3.0) (2026-05-30)
+
+
+### Features
+
+* initial unifi-netops plugin — network-engineer agent + network-reference skill ([b253580](https://github.com/pkloehn1/unifi-netops/commit/b2535806666f15c72ac488dcd9f6af4791928819))
+
 ## [0.2.0](https://github.com/pkloehn1/unifi-netops/compare/v0.1.0...v0.2.0) (2026-05-30)
 
 
