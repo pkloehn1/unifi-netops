@@ -1,0 +1,27 @@
+{
+  "name": "unifi-netops",
+  "owner": {
+    "name": "Pete Kloehn"
+  },
+  "description": "Single-plugin marketplace publishing unifi-netops: a network-engineer subagent + reference skill for UniFi networks operated with Debian/Ubuntu and Windows 11 hosts.",
+  "plugins": [
+    {
+      "name": "unifi-netops",
+      "source": "./",
+      "description": "Network-engineer subagent + reference skill for UniFi networks, Linux, and Windows 11 — fabric/STP/SFP triage, macvlan/bonding/VLAN review, Docker Swarm overlay/macvlan networking, and a flap/loop diagnostic playbook with four worked case studies.",
+      "category": "networking",
+      "tags": [
+        "unifi",
+        "ubiquiti",
+        "networking",
+        "debian",
+        "ubuntu",
+        "windows-11",
+        "docker-swarm",
+        "macvlan",
+        "spanning-tree",
+        "network-diagnostics"
+      ]
+    }
+  ]
+}
