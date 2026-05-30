@@ -1,7 +1,7 @@
 {
   "name": "unifi-netops",
   "description": "Network-engineer subagent + reference skill for UniFi networks run alongside Debian/Ubuntu and Windows 11 hosts. Diagnoses fabric/STP/link-flap and loop issues, reviews UniFi gateway/switch config, and handles host NIC/VLAN/bonding/macvlan and Docker Swarm overlay networking. Use for any UniFi-adjacent network troubleshooting or network-config review.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "Pete Kloehn"
   },

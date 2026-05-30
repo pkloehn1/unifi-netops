@@ -4,6 +4,13 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project
 adheres to [Semantic Versioning](https://semver.org).
 
+## [0.4.0](https://github.com/pkloehn1/unifi-netops/compare/v0.3.0...v0.4.0) (2026-05-30)
+
+
+### Features
+
+* **marketplace:** add marketplace.json so the repo is installable as a single-plugin marketplace ([#12](https://github.com/pkloehn1/unifi-netops/issues/12)) ([9efa127](https://github.com/pkloehn1/unifi-netops/commit/9efa127e9b7d506e4510351e8e1295572bde8497)), closes [#11](https://github.com/pkloehn1/unifi-netops/issues/11)
+
 ## [0.3.0](https://github.com/pkloehn1/unifi-netops/compare/v0.2.0...v0.3.0) (2026-05-30)
 
 
