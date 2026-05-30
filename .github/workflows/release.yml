@@ -23,5 +23,8 @@ jobs:
       - name: Run release-please
         uses: googleapis/release-please-action@v4
         with:
-          token: ${{ github.token }}
+          # PAT (not github.token) so release-please's PRs trigger CI — PRs
+          # opened by the built-in token are suppressed by GitHub's workflow
+          # loop-prevention, which leaves required checks permanently pending.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 ...
