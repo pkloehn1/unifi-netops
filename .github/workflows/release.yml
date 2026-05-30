@@ -20,33 +20,23 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Configure SSH commit signing on the runner
-        # release-please-action commits via `git commit` on the runner. Without
-        # signing config, those commits violate the required_signatures rule on
-        # main and the release PR is unmergeable. Import a dedicated SSH signing
-        # key (private key in repo secret RELEASE_PLEASE_SIGNING_KEY, public key
-        # registered as a Signing Key on the pkloehn1 GitHub account) and pin
-        # the committer identity to that account so GitHub verifies the signature.
-        env:
-          SIGNING_KEY: ${{ secrets.RELEASE_PLEASE_SIGNING_KEY }}
-        run: |
-          set -Eeuo pipefail
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "${SIGNING_KEY}" > ~/.ssh/id_release_please
-          chmod 600 ~/.ssh/id_release_please
-          ssh-keygen -y -f ~/.ssh/id_release_please > ~/.ssh/id_release_please.pub
-          git config --global gpg.format ssh
-          git config --global user.signingkey ~/.ssh/id_release_please.pub
-          git config --global commit.gpgsign true
-          git config --global tag.gpgsign true
-          git config --global user.name 'pkloehn1'
-          git config --global user.email '35460307+pkloehn1@users.noreply.github.com'
+      - name: Mint GitHub App installation token
+        # release-please-action creates commits via the REST API (Octokit), not
+        # `git commit` on the runner — so any runner-side signing config is
+        # bypassed. A GitHub App installation token is the only REST-auth path
+        # that produces commits which are both (a) auto-signed by GitHub's
+        # verified infrastructure (satisfying required_signatures) and (b) able
+        # to trigger downstream pull_request workflows (the built-in
+        # github.token is suppressed by GitHub's workflow loop-prevention,
+        # leaving required checks permanently pending).
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RELEASE_PLEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
 
       - name: Run release-please
         uses: googleapis/release-please-action@v4
         with:
-          # PAT (not github.token) so release-please's PRs trigger CI — PRs
-          # opened by the built-in token are suppressed by GitHub's workflow
-          # loop-prevention, which leaves required checks permanently pending.
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 ...
