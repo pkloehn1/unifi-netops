@@ -4,6 +4,18 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project
 adheres to [Semantic Versioning](https://semver.org).
 
+## [0.3.0](https://github.com/pkloehn1/unifi-netops/compare/v0.2.0...v0.3.0) (2026-05-30)
+
+
+### Features
+
+* **skill:** add example-workflows reference with four worked case studies ([#7](https://github.com/pkloehn1/unifi-netops/issues/7)) ([4a9afd6](https://github.com/pkloehn1/unifi-netops/commit/4a9afd629fba9a33f4128699f12339faf2a37ddd)), closes [#6](https://github.com/pkloehn1/unifi-netops/issues/6)
+
+
+### Bug Fixes
+
+* **ci:** use GitHub App token for release-please so REST commits are auto-signed ([#10](https://github.com/pkloehn1/unifi-netops/issues/10)) ([e41199d](https://github.com/pkloehn1/unifi-netops/commit/e41199de0d7bfbea7e440c148deaddca48eb23a9)), closes [#9](https://github.com/pkloehn1/unifi-netops/issues/9)
+
 ## [0.2.0](https://github.com/pkloehn1/unifi-netops/compare/v0.1.0...v0.2.0) (2026-05-30)
 
 
