@@ -34,6 +34,10 @@ when a task needs them (progressive disclosure).
   teaming, VLAN) → [references/windows.md](references/windows.md)
 - Fabric flap/loop diagnostic procedure (monitor + syslog + correlate + bisect)
   → [references/diagnostics-playbook.md](references/diagnostics-playbook.md)
+- Worked-example diagnostic case studies (SFP+↔SFP flap, macvlan IPAM
+  recovery, SwarmKit compose-loader strictness, DNS wildcard-AAAA + TLS) —
+  symptoms → bisection → root cause → fix → durable mitigation
+  → [references/example-workflows.md](references/example-workflows.md)
 
 ## Operating principles
 
