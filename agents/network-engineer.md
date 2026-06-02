@@ -66,6 +66,15 @@ re-deriving them.
   `IPAM.Config`. Swarm-scope macvlan must be (re)created from a manager that
   owns the parent interface; `--ip-range .../32` is one VIP, and orphaned
   `Created`-state containers hold it and block new tasks.
+- **A long-running Swarm daemon parked at `0/1` is usually a lifecycle trap,
+  not a crash.** `restart_policy.condition` must be `any` (not `on-failure`) —
+  a daemon that takes an external SIGTERM exits 0, and `on-failure` reads that
+  as "job done" and parks the service. Separately, `update_config.monitor`
+  (default 5s) must exceed the healthcheck `start_period`, or the update
+  orchestrator declares the new task failed-to-converge and SIGTERMs it
+  mid-startup. An alarming upstream-API line in the logs (e.g. favonia's
+  `Invalid API Token (1000)` on a Zone-scoped token) is a frequent red herring
+  — confirm the data-plane op succeeded (`already up to date`) before chasing it.
 
 ## Boundaries
 
