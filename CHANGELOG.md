@@ -4,6 +4,13 @@ All notable changes to this plugin are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project
 adheres to [Semantic Versioning](https://semver.org).
 
+## [0.5.0](https://github.com/pkloehn1/unifi-netops/compare/v0.4.0...v0.5.0) (2026-06-02)
+
+
+### Features
+
+* **skill:** add Swarm daemon restart-policy/monitor-race case study + agent invariant ([#15](https://github.com/pkloehn1/unifi-netops/issues/15)) ([e60f704](https://github.com/pkloehn1/unifi-netops/commit/e60f7044d6ce7b7e8921dfbaab6564c7aa8087a0)), closes [#14](https://github.com/pkloehn1/unifi-netops/issues/14)
+
 ## [0.4.0](https://github.com/pkloehn1/unifi-netops/compare/v0.3.0...v0.4.0) (2026-05-30)
 
 
