@@ -314,6 +314,100 @@ IP, so pinning the IP while keeping the hostname intact preserves it.
 
 ---
 
+## 5. A network-facing Swarm daemon parks at `0/1`, blamed on an upstream-API auth error
+
+### Symptoms
+
+- A long-running network service deployed via `docker stack` (e.g. a
+  dynamic-DNS updater keeping the WAN `A` record current) sits at `0/1` for
+  days; the network function it provides silently stops.
+- Its logs prominently show an **upstream-API auth warning** — favonia
+  cloudflare-ddns logs `The Cloudflare API token appears to be invalid:
+  Invalid API Token (1000)` — so suspicion falls on a bad/rotated token.
+- `docker service ps <svc>` shows the task repeatedly reaching `Complete`
+  (exit 0) within seconds, then the service gives up and stays at `0/1`.
+- Re-entering or rotating the token changes nothing.
+
+### Bisection
+
+1. **Pull the full container log, not a filtered tail.** Grep for the
+   lifecycle markers, not just the scary auth line:
+   ```bash
+   ssh <swarm-node> 'docker logs <container-id> 2>&1 \
+     | grep -E "Caught signal|Bye|already up to date|Invalid"'
+   ```
+   If the daemon logs a *successful data-plane op* (`already up to date`)
+   **and** `Caught signal: terminated` → `Bye`, the exit is an **external
+   SIGTERM**, not a crash and not an auth failure.
+2. **Separate cosmetic from causal.** favonia validates the token via
+   Cloudflare's **User-scope** `/user/tokens/verify` endpoint, which returns
+   1000 for a **Zone-scoped** token even though its `DNS:Edit` permission
+   works. The `already up to date` line proves the token is functional — the
+   1000 warning is a red herring. (Generalises: an alarming upstream-API line
+   is not the cause if the data-plane op it gates is still succeeding.)
+3. **Find who sends the SIGTERM.** With no concurrent `docker stack deploy`
+   running, the sender is Swarm's own update orchestrator. Inspect the service:
+   ```bash
+   docker service inspect <svc> \
+     --format '{{json .Spec.UpdateConfig}}{{"\n"}}{{json .Spec.TaskTemplate.RestartPolicy}}'
+   ```
+   Compare `UpdateConfig.Monitor` (default `5000000000` ns = **5s**) against
+   the healthcheck's `StartPeriod`. Monitor < StartPeriod is the smoking gun.
+
+### Root cause (real example)
+
+A compound Swarm-lifecycle bug, mistaken for an auth failure:
+
+- `update_config.monitor` was the **5s default**; the service's healthcheck had
+  `start_period: 10s`. The orchestrator watched each new task for only 5s, saw
+  it still "starting", declared the update **failed**, rolled it back, and
+  **SIGTERM'd the task at ~30s**.
+- `restart_policy.condition: on-failure` then **refused to restart** the clean
+  exit-0. For a daemon, an external-SIGTERM exit-0 *must* restart; `on-failure`
+  reads it as "job finished" and **parks the service at `0/1`**.
+- `max_attempts: 3` / `window: 120s` compounded it — three quick exits
+  exhausted attempts and hit the [moby#43712](https://github.com/moby/moby/issues/43712)
+  parking trap.
+
+### Fix now
+
+```yaml
+deploy:
+  restart_policy:
+    condition: any          # not on-failure: a daemon's clean SIGTERM exit must restart
+    max_attempts: 0         # unlimited — never exhaust into the moby#43712 park
+    delay: 30s
+    window: 300s
+  update_config:
+    monitor: 30s            # must exceed any healthcheck start_period
+    order: stop-first       # singleton — never two updaters racing one record
+# and DROP the no-op `healthcheck: ["CMD", "true"]` whose start_period raced monitor
+```
+
+### Durable mitigation
+
+- For any **long-running daemon** under Swarm, default to
+  `restart_policy.condition: any` — `on-failure` is for run-to-completion
+  jobs, and a daemon that takes an external SIGTERM exits 0.
+- Set `update_config.monitor` **explicitly** and keep it `>` the largest
+  healthcheck `start_period` in the service. Don't rely on the 5s default.
+- Don't add a healthcheck just to "have one." A `["CMD", "true"]` probe does
+  nothing but contribute a `start_period` that can race the monitor window.
+- When an upstream-API warning appears in a daemon's logs, confirm the
+  **data-plane op** (the thing the service actually does) before chasing the
+  warning — favonia's `already up to date` is the proof the token works.
+
+### Invariants this reinforces
+
+- A long-running Swarm daemon that exits 0 on an external SIGTERM parks at
+  `0/1` unless `restart_policy.condition: any`.
+- `update_config.monitor` must exceed the healthcheck `start_period`, or the
+  update orchestrator rolls back and SIGTERMs the new task mid-startup.
+- The alarming log line is not the cause if the data-plane op it gates still
+  succeeds — verify the op, not the warning.
+
+---
+
 ## How to use these
 
 When you face a new diagnostic puzzle, scan for the case whose
